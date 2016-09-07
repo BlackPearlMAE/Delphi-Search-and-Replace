@@ -1,0 +1,313 @@
+unit Unit1;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
+  StdCtrls, ComCtrls, ShellApi;
+
+type
+
+  { TExchanger }
+
+  TExchanger = class(TForm)
+    btnOpenFile: TButton;
+    btnFileSave: TButton;
+    Label1: TLabel;
+    lbDuration: TLabel;
+    lbPreview: TLabel;
+    lbResult: TLabel;
+    lbFileSaveDictionary: TLabel;
+    lbSaveDictionaryLabel: TLabel;
+    lbFileLoadDictionary: TLabel;
+    lbFileDictionaryLable: TLabel;
+    mResult: TMemo;
+    mPreview: TMemo;
+    odgFileOpen: TOpenDialog;
+    odgFileSave: TSaveDialog;
+    btnStart: TButton;
+    edtSearch: TLabeledEdit;
+    edtReplace: TLabeledEdit;
+    pbState: TProgressBar;
+    sbDuration: TStatusBar;
+    Timer1: TTimer;
+    procedure btnFileSaveClick(Sender: TObject);
+    procedure btnOpenFileClick(Sender: TObject);
+    procedure edtReplaceChange(Sender: TObject);
+    procedure edtReplaceExit(Sender: TObject);
+    procedure edtSearchChange(Sender: TObject);
+    procedure edtSearchEnter(Sender: TObject);
+    procedure edtSearchExit(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure btnStartClick(Sender: TObject);
+    procedure Label1Click(Sender: TObject);
+    procedure lbResultClick(Sender: TObject);
+    procedure lbDirectoryClick(Sender: TObject);
+    procedure lbFileLoadDictionaryClick(Sender: TObject);
+    procedure lbFileDictionaryLableClick(Sender: TObject);
+    procedure lbFileNameClick(Sender: TObject);
+    procedure lbFileSaveDictionaryClick(Sender: TObject);
+    procedure lbSaveDictionaryLabelClick(Sender: TObject);
+    procedure mResultChange(Sender: TObject);
+    procedure mPreviewChange(Sender: TObject);
+    procedure odgFileSaveSelectionChange(Sender: TObject);
+    procedure odgFileSaveTypeChange(Sender: TObject);
+
+  private
+    {}
+  public
+    {}
+  end;
+
+var
+  Exchanger: TExchanger;
+  sFileName, sFileSaveName, sNewFile: String;
+  cWordS, cWordR, cEmpty: Char;
+implementation
+
+{$R *.lfm}
+
+{ TExchanger }
+
+
+
+//Lable File Direction
+procedure TExchanger.lbDirectoryClick(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.lbFileLoadDictionaryClick(Sender: TObject);
+begin
+
+end;
+
+//Lable Datei Pfad
+procedure TExchanger.lbFileDictionaryLableClick(Sender: TObject);
+begin
+
+end;
+//Lable File Name
+procedure TExchanger.lbFileNameClick(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.lbFileSaveDictionaryClick(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.lbSaveDictionaryLabelClick(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.mResultChange(Sender: TObject);
+begin
+
+end;
+
+//Memo Priview
+procedure TExchanger.mPreviewChange(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.odgFileSaveSelectionChange(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.odgFileSaveTypeChange(Sender: TObject);
+begin
+
+end;
+
+//Start Button
+procedure TExchanger.btnStartClick(Sender: TObject);
+var cEmpty: Char;
+    iLine, iLetter, iPer: Integer;
+    sInfo, sCurrLine: String;
+    tStartTime, tEndTime, tDuration: TTime;
+    dCurrState: Double;
+    cBox, cExist: Cardinal;
+
+begin
+
+  mResult.Clear; //Clear 'Resultat'
+  //Check list
+  if edtSearch.Text = '' then
+  begin
+    sInfo := sInfo + ('Suche darf nicht leer sein !' + sLineBreak);
+  end
+  else
+  cWordR := Char(edtReplace.Text[1]);
+  begin
+    if cWordS = cWordR then
+      sInfo := sInfo + ('Sie können ''' + cWordS + ''' nicht durch ''' + cWordR + ''' ersetzen !' + sLineBreak);
+  end;
+  if sFileName = '' then
+    sInfo := sInfo + ('Sie müssen eine Textdatei auswählen !' + sLineBreak);
+
+  if sFileSaveName = '' then
+    sInfo := sInfo + ('Sie müssen einen Speicherort festlegen !');
+
+  if sInfo <> '' then
+    begin
+      MessageDlg(sInfo, mtInformation, [mbOK], 0);
+      sInfo := '';
+    end
+  else
+  begin
+    try
+
+      tDuration := 0;
+      tStartTime := Now;                                      //Start time
+      Screen.Cursor := crHourGlass;                           //Change cursor
+      mResult.Lines.BeginUpdate;
+      pbState.Position := 0;
+      pbState.Max := mPreview.Lines.Count - 1;
+
+      iPer := round(((mPreview.Lines.Count - 1) / 100) * 10);
+
+      //sNewFile := StringReplace(tfFile, cWordS, cWordR,[rfReplaceAll]);
+
+      for iLine := 0 to mPreview.Lines.Count - 1 do           //Get all lines
+      begin
+        pbState.Position := pbState.Position + 1;             //Progressbar state
+        sCurrLine := mPreview.Lines[iLine];                   //Get current line
+        for iLetter := 0 to Length(sCurrLine) - 1 do          //Get current letter
+        begin
+          if sCurrLine[iLetter] = cWordS then
+            begin
+            sCurrLine[iLetter] := cWordR;                     //Replace
+            end;
+        end;
+        mResult.Lines.Add(sCurrLine);                         //Write to result
+      end;
+
+      tEndTime := Now;                                        //End time
+      sbDuration.Panels[0].Text := '  Dauer: ' + FormatDateTime('hh:mm:ss:zzz', tEndTime - tStartTime);
+      mResult.Lines.EndUpdate;
+      Screen.Cursor := crDefault;
+
+      if FileExists(sFileSaveName) then
+        cExist := MessageDlg('Datei existiert bereits !' + sLineBreak + 'Möchten Sie die Datei ersetzen ?' , mtConfirmation, [mbYes, mbNo], 0);
+      if (cExist = mrYes) or (cExist = mrNo) then
+      begin
+          if cExist = mrYes then
+            mResult.Lines.SaveToFile(sFileSaveName);
+          if cExist = mrNo then
+          begin
+            if odgFileSave.Execute then
+            begin
+              sFileSaveName := odgFileSave.FileName;
+              if (sFileSaveName <> '') and ( not FileExists(sFileSaveName)) then
+              begin
+                mResult.Lines.SaveToFile(sFileSaveName);
+              end
+               else
+              MessageDlg('Datei existiert bereits !', mtInformation, [mbOk], 0);
+            end;
+          end;
+      cBox := MessageDlg('Ihre Datei wurde unter: ' + sFileSaveName + ' gespeichert.' + sLineBreak + 'Möchten sie die Datei öffnen ?' ,mtConfirmation , [mbYes, mbNo], 0);
+      if cBox = mrYes then
+      ShellExecute(Handle, 'open', PChar(sFileSaveName), nil, nil, 1);
+      end
+       else
+      begin
+        if cExist = 2 then
+          MessageDlg('Ihre Datei wurde nicht gespeichert.', mtInformation, [mbOk], 0);
+      end
+      finally
+      pbState.Position := 0;
+      Screen.Cursor := crDefault;
+    end;
+  end;
+end;
+
+procedure TExchanger.Label1Click(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.lbResultClick(Sender: TObject);
+begin
+
+end;
+
+
+
+//Formular
+procedure TExchanger.FormCreate(Sender: TObject);
+begin
+
+end;
+
+//Button Datei Öffnen
+procedure TExchanger.btnOpenFileClick(Sender: TObject);
+begin
+  mPreview.Lines.Clear;
+  mResult.Lines.Clear;
+  cWordS := 'A';
+  cWordR := 'b';
+  if odgFileOpen.Execute then
+  begin
+    try
+      sFileName := odgFileOpen.FileName;
+      if sFileName <> '' then
+      begin
+        Screen.Cursor:=crHourGlass;
+
+        mPreview.Lines.LoadFromFile(sFileName);
+        lbFileLoadDictionary.Caption := sFileName;
+        sFileSaveName := sFileName + '(copy)';
+        lbFileSaveDictionary.Caption := sFileSaveName;
+      end;
+    finally
+      Screen.Cursor := crDefault;
+    end;
+  end;
+end;
+
+procedure TExchanger.edtReplaceChange(Sender: TObject);
+begin
+
+end;
+
+
+procedure TExchanger.edtReplaceExit(Sender: TObject);
+begin
+  cWordR := Char(edtReplace.Text[1]);
+end;
+
+procedure TExchanger.edtSearchChange(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.edtSearchEnter(Sender: TObject);
+begin
+
+end;
+
+procedure TExchanger.edtSearchExit(Sender: TObject);
+begin
+    cWordS := Char(edtSearch.Text[1]);
+end;
+
+//Button Speichern unter...
+procedure TExchanger.btnFileSaveClick(Sender: TObject);
+begin
+  if odgFileSave.Execute then
+  begin
+    sFileSaveName := odgFileSave.FileName;
+    lbFileSaveDictionary.Caption := sFileSaveName;
+
+  end;
+end;
+
+end.
